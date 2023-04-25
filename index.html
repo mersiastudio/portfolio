@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>sketch1</title>
+    <style>
+      html,
+      body {
+        margin: 0px;
+        padding: 0;
+        overflow: hidden;
+        height: 100%;
+        width: 100%;
+
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+  </head>
+  <body>
+    <div id="sketch1"></div>
+
+    <script>
+      let particles = [];
+      let numParticles = 200;
+      let colors = ["#272727"];
+
+      function setup() {
+        createCanvas(windowWidth, windowHeight);
+        for (let i = 0; i < numParticles; i++) {
+          particles.push(new Particle());
+        }
+      }
+
+      function draw() {
+        clear(); // clears the background each frame
+        blendMode(DIFFERENCE); // sets the blend mode to "difference" for the particles
+        for (let i = 0; i < particles.length; i++) {
+          particles[i].update();
+          particles[i].display();
+          particles[i].hover();
+        }
+        blendMode(BLEND); // sets the blend mode back to default for any other elements on the canvas
+      }
+
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+      }
+
+      class Particle {
+        constructor() {
+          this.position = createVector(random(width), random(height));
+          this.velocity = createVector(random(-1, 1), random(-1, 1));
+          this.acceleration = createVector();
+          this.color = "#fbfbfb"; //161616 FFFFFF
+          this.originalColor = this.color;
+          this.size = random(5, 20);
+          this.maxSpeed = 1;
+          this.maxForce = 0.001;
+          this.target = createVector(random(width), random(height));
+        }
+
+        update() {
+          this.position.add(this.velocity);
+          this.velocity.add(this.acceleration);
+          this.velocity.limit(this.maxSpeed);
+          this.acceleration.mult(0);
+          let desired = p5.Vector.sub(this.target, this.position);
+          let d = desired.mag();
+          if (d < 100) {
+            let m = map(d, 0, 100, 0, this.maxSpeed);
+            desired.setMag(m);
+          } else {
+            desired.setMag(this.maxSpeed);
+          }
+          let steering = p5.Vector.sub(desired, this.velocity);
+          steering.limit(this.maxForce);
+          this.acceleration.add(steering);
+          if (
+            this.position.x > width ||
+            this.position.x < 0 ||
+            this.position.y > height ||
+            this.position.y < 0
+          ) {
+            this.position = createVector(random(width), random(height));
+          }
+        }
+
+        display() {
+          noStroke();
+          fill(this.color);
+          ellipse(this.position.x, this.position.y, this.size);
+        }
+
+        hover() {
+          let d = dist(mouseX, mouseY, this.position.x, this.position.y);
+          if (d < 50) {
+            let repelForce = createVector(
+              this.position.x - mouseX,
+              this.position.y - mouseY
+            );
+            repelForce.setMag((1 / d) * 10);
+            this.acceleration.add(repelForce);
+          }
+        }
+      }
+
+      new p5(sketch1, "sketch1");
+    </script>
+  </body>
+</html>
